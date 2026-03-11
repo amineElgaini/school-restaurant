@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('meals', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('type', ['entrée', 'plat principal', 'dessert', 'boisson']);
+            $table->enum('type', ['entree', 'plat principal', 'dessert', 'boisson']);
             $table->text('description')->nullable();
             $table->string('image')->nullable();
             $table->timestamps();
