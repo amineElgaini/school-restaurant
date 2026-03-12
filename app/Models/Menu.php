@@ -14,9 +14,6 @@ class Menu extends Model
         'week_end_date',
     ];
 
-    /**
-     * The meals that belong to the menu.
-     */
     public function meals()
     {
         return $this->belongsToMany(Meal::class, 'menu_meals')
@@ -24,9 +21,6 @@ class Menu extends Model
                     ->withTimestamps();
     }
 
-    /**
-     * The menu meals (pivot) for this menu.
-     */
     public function menuMeals()
     {
         return $this->hasMany(MenuMeal::class);

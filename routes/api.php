@@ -17,6 +17,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin Routes
     Route::prefix('admin')->group(function () {
         Route::apiResource('users', AdminController::class);
-        Route::apiResource('roles', RoleController::class)->except(['update', 'show']);
+        Route::apiResource('roles', RoleController::class)->only(['index']);
     });
 });

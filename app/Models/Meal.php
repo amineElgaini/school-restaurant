@@ -21,6 +21,7 @@ class Meal extends Model
      */
     public function menus()
     {
+        // I need it if they wanna remove a meal that's already in a menu
         return $this->belongsToMany(Menu::class, 'menu_meals')
                     ->withPivot('reservation_date')
                     ->withTimestamps();
