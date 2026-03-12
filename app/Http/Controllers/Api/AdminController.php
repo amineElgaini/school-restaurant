@@ -65,7 +65,11 @@ class AdminController extends Controller
 
     public function destroy(User $user)
     {
+        if (auth()->id() === $user->id) {
+            return response()->json(['error' => 'You cannot delete yourself.'], 403);
+        }
+
         $user->delete();
-        return response()->json(null, 204);
+        return response()->json("User archived", 200);
     }
 }
