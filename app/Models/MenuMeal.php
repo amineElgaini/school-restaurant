@@ -12,15 +12,11 @@ class MenuMeal extends Model
     protected $table = 'menu_meals';
 
     protected $fillable = [
-        'menu_id',
         'meal_id',
         'reservation_date',
     ];
 
-    public function menu()
-    {
-        return $this->belongsTo(Menu::class);
-    }
+
 
     public function meal()
     {

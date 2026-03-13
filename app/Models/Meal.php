@@ -11,19 +11,21 @@ class Meal extends Model
 
     protected $fillable = [
         'name',
-        'type',
+        'meal_type_id',
         'description',
         'image',
     ];
 
-    /**
-     * The menus that contain the meal.
-     */
-    public function menus()
+    public function type()
     {
-        // I need it if they wanna remove a meal that's already in a menu
-        return $this->belongsToMany(Menu::class, 'menu_meals')
-                    ->withPivot('reservation_date')
-                    ->withTimestamps();
+        return $this->belongsTo(MealType::class, 'meal_type_id');
+    }
+
+    /**
+     * The reservations for this meal via menu_meals.
+     */
+    public function menuMeals()
+    {
+        return $this->hasMany(MenuMeal::class);
     }
 }
