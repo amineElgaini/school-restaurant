@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('meals', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('type', ['entree', 'plat principal', 'dessert', 'boisson']);
+            $table->foreignId('meal_type_id')->constrained('meal_types')->onDelete('cascade');
             $table->text('description')->nullable();
             $table->string('image')->nullable();
             $table->timestamps();
