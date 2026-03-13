@@ -19,5 +19,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('users', AdminController::class);
         Route::post('users/{user}/permissions', [AdminController::class, 'updatePermissions']);
         Route::get('roles', [RoleController::class, 'index']);
+        Route::get('roles/permissions', [RoleController::class, 'rolesWithPermissions']);
     });
 });
