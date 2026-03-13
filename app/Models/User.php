@@ -24,6 +24,7 @@ class User extends Authenticatable
         'image',
         'email',
         'password',
+        'role_id',
     ];
 
     /**
@@ -50,10 +51,44 @@ class User extends Authenticatable
     }
 
     /**
-     * The roles that belong to the user.
+     * The role that belongs to the user.
      */
-    public function roles()
+    public function role()
     {
-        return $this->belongsToMany(Role::class);
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * The permissions that belong to the user.
+     */
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class);
+    }
+
+    /**
+     * Check if the user has a specific role.
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role && $this->role->name === $role;
+    }
+
+    /**
+     * Check if the user has a specific permission.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // Check direct permissions
+        if ($this->permissions()->where('slug', $permission)->exists()) {
+            return true;
+        }
+
+        // Check permissions through roles
+        if ($this->role && $this->role->permissions()->where('slug', $permission)->exists()) {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -17,6 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin Routes
     Route::prefix('admin')->group(function () {
         Route::apiResource('users', AdminController::class);
-        Route::apiResource('roles', RoleController::class)->only(['index']);
+        Route::post('users/{user}/permissions', [AdminController::class, 'updatePermissions']);
+        Route::get('roles', [RoleController::class, 'index']);
     });
 });
