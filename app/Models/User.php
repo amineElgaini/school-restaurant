@@ -51,6 +51,14 @@ class User extends Authenticatable
     }
 
     /**
+     * The reservations that belong to the user.
+     */
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    /**
      * The role that belongs to the user.
      */
     public function role()
