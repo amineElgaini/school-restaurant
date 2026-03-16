@@ -7,9 +7,20 @@ use App\Models\MenuMeal;
 use App\Models\Reservation;
 use App\Models\Complaint;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class StudentController extends Controller
+class StudentController extends Controller implements HasMiddleware
 {
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('role:student'),
+            new Middleware('permission:submit_reclamation', only: ['submitReclamation'])
+        ];
+    }
+
     /**
      * Show available meals for a specific date.
      */
