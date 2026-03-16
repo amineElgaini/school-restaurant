@@ -13,7 +13,7 @@ class MealController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:manage_menu'),
+            new Middleware('permission:manage_meals'),
         ];
     }
 
