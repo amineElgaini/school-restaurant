@@ -38,7 +38,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $staffRole->permissions()->sync([
             // $permissionModels['manage_menu']->id,
             // $permissionModels['manage_meals']->id,
-            // $permissionModels['view_reservations']->id,
+            $permissionModels['view_reservations']->id,
         ]);
 
         $studentRole->permissions()->sync([
