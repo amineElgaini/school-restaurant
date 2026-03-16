@@ -36,13 +36,13 @@ class RolesAndPermissionsSeeder extends Seeder
         $adminRole->permissions()->sync(array_values(array_map(fn($p) => $p->id, $permissionModels)));
         
         $staffRole->permissions()->sync([
-            $permissionModels['manage_menu']->id,
-            $permissionModels['manage_meals']->id,
-            $permissionModels['view_reservations']->id,
+            // $permissionModels['manage_menu']->id,
+            // $permissionModels['manage_meals']->id,
+            // $permissionModels['view_reservations']->id,
         ]);
 
         $studentRole->permissions()->sync([
-            $permissionModels['submit_reclamation']->id,
+            // $permissionModels['submit_reclamation']->id,
         ]);
 
         // 4. Create Specific Test Users for Role Use Cases

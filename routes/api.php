@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\MealController;
+use App\Http\Controllers\Api\MenuMealController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('meals', MealController::class);
+    Route::apiResource('menu-meals', MenuMealController::class)->except(['show', 'update']);
+
 
     // Student Routes
     Route::prefix('student')->group(function () {
