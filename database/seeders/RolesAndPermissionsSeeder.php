@@ -22,7 +22,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 2. Create Permissions
         $permissions = [
-            'plan_weekly_menu' => ['name' => 'Plan Weekly Menu', 'slug' => 'plan_weekly_menu'],
+            'manage_menu' => ['name' => 'Plan Weekly Menu', 'slug' => 'manage_menu'],
             'manage_meals' => ['name' => 'Manage Meals', 'slug' => 'manage_meals'],
             'view_reservations' => ['name' => 'View Reservations', 'slug' => 'view_reservations'],
             'submit_reclamation' => ['name' => 'Submit Reclamation', 'slug' => 'submit_reclamation'],
@@ -36,7 +36,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $adminRole->permissions()->sync(array_values(array_map(fn($p) => $p->id, $permissionModels)));
         
         $staffRole->permissions()->sync([
-            $permissionModels['plan_weekly_menu']->id,
+            $permissionModels['manage_menu']->id,
             $permissionModels['manage_meals']->id,
             $permissionModels['view_reservations']->id,
         ]);
@@ -51,7 +51,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $this->createUser('Student User', 'student@example.com', $studentRole);
 
         // 5. Create Specific Test Users for Permission Use Cases (Direct Permission Assignment)
-        $this->createUser('Staff Planner', 'staff_plan_menu@example.com', $staffRole, $permissionModels['plan_weekly_menu']);
+        $this->createUser('Staff Planner', 'staff_plan_menu@example.com', $staffRole, $permissionModels['manage_menu']);
         $this->createUser('Staff Manager', 'staff_manage_meals@example.com', $staffRole, $permissionModels['manage_meals']);
         $this->createUser('Staff Reservations', 'staff_view_reservations@example.com', $staffRole, $permissionModels['view_reservations']);
         $this->createUser('Student Reporter', 'student_submit_reclamation@example.com', $studentRole, $permissionModels['submit_reclamation']);
