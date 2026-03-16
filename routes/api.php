@@ -17,7 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Admin Routes
-    Route::prefix('admin')->middleware('role:Admin')->group(function () {
+    Route::prefix('admin')->group(function () {
         Route::apiResource('users', AdminController::class)->except(['show']);
         Route::post('users/{user}/permissions', [AdminController::class, 'updatePermissions']);
         Route::get('roles', [RoleController::class, 'index']);
@@ -27,12 +27,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('meals', MealController::class);
 
     // Student Routes
-    Route::prefix('student')->middleware('role:Student')->group(function () {
+    Route::prefix('student')->group(function () {
         Route::get('/available-meals', [StudentController::class, 'availableMeals']);
         Route::get('/reservations', [StudentController::class, 'reservations']);
         Route::post('/reservations', [StudentController::class, 'reserve']);
         Route::delete('/reservations/{reservation}', [StudentController::class, 'removeReservation']);
-        Route::post('/reclamations', [StudentController::class, 'submitReclamation'])->middleware('permission:submit_reclamation');
+        Route::post('/reclamations', [StudentController::class, 'submitReclamation']);
     });
 
 });
