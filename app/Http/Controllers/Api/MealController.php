@@ -13,9 +13,10 @@ class MealController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:manage_menu', only: ['store', 'destroy']),
+            new Middleware('permission:manage_menu'),
         ];
     }
+
     public function index()
     {
         return Meal::all();
@@ -25,34 +26,20 @@ class MealController extends Controller implements HasMiddleware
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:entree,plat_principal,dessert,boisson',
+            'meal_type_id' => 'required|exists:meal_types,id',
             'description' => 'nullable|string',
-            'image' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('meals', 'public');
+            $validated['image'] = $path;
+        }
 
         $meal = Meal::create($validated);
 
         return response()->json($meal, 201);
     }
-
-    public function show(Meal $meal)
-    {
-        return $meal;
-    }
-
-    // public function update(Request $request, Meal $meal)
-    // {
-    //     $validated = $request->validate([
-    //         'name' => 'sometimes|string|max:255',
-    //         'type' => 'sometimes|in:entree,plat_principal,dessert,boisson',
-    //         'description' => 'nullable|string',
-    //         'image' => 'nullable|string',
-    //     ]);
-
-    //     $meal->update($validated);
-
-    //     return response()->json($meal);
-    // }
 
     public function destroy(Meal $meal)
     {
