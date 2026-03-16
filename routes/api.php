@@ -27,7 +27,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('meals', MealController::class);
     Route::apiResource('menu-meals', MenuMealController::class)->except(['show', 'update']);
-
+    Route::apiResource('reservations', ReservationController::class)->only(['index', 'show']);
+    Route::get('reservations/stats', [ReservationController::class, 'stats']);
 
     // Student Routes
     Route::prefix('student')->group(function () {
