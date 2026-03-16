@@ -13,7 +13,7 @@ class MealTypeSeeder extends Seeder
     public function run(): void
     {
         $types = [
-            ['name' => 'Entrée', 'slug' => 'entree'],
+            ['name' => 'Entree', 'slug' => 'entree'],
             ['name' => 'Plat Principal', 'slug' => 'plat_principal'],
             ['name' => 'Dessert', 'slug' => 'dessert'],
             ['name' => 'Boisson', 'slug' => 'boisson'],

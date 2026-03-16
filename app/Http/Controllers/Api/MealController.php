@@ -17,7 +17,7 @@ class MealController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:entrée,plat principal,dessert,boisson',
+            'type' => 'required|in:entree,plat_principal,dessert,boisson',
             'description' => 'nullable|string',
             'image' => 'nullable|string',
         ]);
@@ -32,19 +32,19 @@ class MealController extends Controller
         return $meal;
     }
 
-    public function update(Request $request, Meal $meal)
-    {
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'type' => 'sometimes|in:entrée,plat principal,dessert,boisson',
-            'description' => 'nullable|string',
-            'image' => 'nullable|string',
-        ]);
+    // public function update(Request $request, Meal $meal)
+    // {
+    //     $validated = $request->validate([
+    //         'name' => 'sometimes|string|max:255',
+    //         'type' => 'sometimes|in:entree,plat_principal,dessert,boisson',
+    //         'description' => 'nullable|string',
+    //         'image' => 'nullable|string',
+    //     ]);
 
-        $meal->update($validated);
+    //     $meal->update($validated);
 
-        return response()->json($meal);
-    }
+    //     return response()->json($meal);
+    // }
 
     public function destroy(Meal $meal)
     {
