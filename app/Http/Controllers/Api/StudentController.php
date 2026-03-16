@@ -22,19 +22,6 @@ class StudentController extends Controller implements HasMiddleware
     }
 
     /**
-     * Show available meals for a specific date.
-     */
-    public function availableMeals(Request $request)
-    {
-        $request->validate([
-            'date' => 'required|date',
-        ]);
-
-        $date = $request->query('date');
-        return MenuMeal::with('meal')->where('reservation_date', $date)->get();
-    }
-
-    /**
      * Show reserved meals for the current student, optionally for a specific date.
      */
     public function reservations(Request $request)

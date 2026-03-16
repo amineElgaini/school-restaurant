@@ -31,7 +31,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Student Routes
     Route::prefix('student')->group(function () {
-        Route::get('/available-meals', [StudentController::class, 'availableMeals']);
         Route::get('/reservations', [StudentController::class, 'reservations']);
         Route::post('/reservations', [StudentController::class, 'reserve']);
         Route::delete('/reservations/{reservation}', [StudentController::class, 'removeReservation']);
