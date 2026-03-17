@@ -22,19 +22,20 @@ Schema::create('role_user', function (Blueprint $table) {
     $table->timestamps();
 });
 
-Schema::create('meals', function (Blueprint $table) {
+Schema::create('meal_types', function (Blueprint $table) {
     $table->id();
     $table->string('name');
-    $table->enum('type', ['entree', 'plat principal', 'dessert', 'boisson']);
-    $table->text('description')->nullable();
-    $table->string('image')->nullable();
+    $table->string('slug')->unique();
     $table->timestamps();
 });
 
-Schema::create('menus', function (Blueprint $table) {
+
+Schema::create('meals', function (Blueprint $table) {
     $table->id();
-    $table->date('week_start_date');
-    $table->date('week_end_date');
+    $table->string('name');
+    $table->foreignId('meal_type_id')->constrained()->onDelete('cascade');
+    $table->text('description')->nullable();
+    $table->string('image')->nullable();
     $table->timestamps();
 });
 
