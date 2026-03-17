@@ -34,7 +34,7 @@ class StudentController extends Controller implements HasMiddleware
             ->where('user_id', auth()->id());
 
         $query->whereHas('menuMeal', function ($q) use ($request) {
-            $q->where('reservation_date', $request->query('date'));
+            $q->whereDate('reservation_date', $request->input('date'));
         });
 
         return $query->get();
@@ -50,14 +50,14 @@ class StudentController extends Controller implements HasMiddleware
         ]);
 
         $menuMeal = MenuMeal::with('meal.type')->findOrFail($validated['menu_meal_id']);
-        
+
         // Check if user already reserved a meal of the same type for this date
         $alreadyReservedType = Reservation::where('user_id', auth()->id())
             ->whereHas('menuMeal', function ($query) use ($menuMeal) {
-                $query->where('reservation_date', $menuMeal->reservation_date)
-                      ->whereHas('meal', function ($q) use ($menuMeal) {
-                          $q->where('meal_type_id', $menuMeal->meal->meal_type_id);
-                      });
+                $query->whereDate('reservation_date', $menuMeal->reservation_date)
+                    ->whereHas('meal', function ($q) use ($menuMeal) {
+                        $q->where('meal_type_id', $menuMeal->meal->meal_type_id);
+                    });
             })
             ->exists();
 
