@@ -20,11 +20,47 @@ class AdminController extends Controller implements HasMiddleware
         ];
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/admin",
+     *     summary="List all users with roles and permissions",
+     *     tags={"Admin"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation"
+     *     )
+     * )
+     */
     public function index()
     {
         return User::with(['role', 'permissions'])->get();
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/admin",
+     *     summary="Create a new user",
+     *     tags={"Admin"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","email","password","role_id"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="secret123"),
+     *             @OA\Property(property="role_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="User created successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
