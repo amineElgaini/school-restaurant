@@ -22,7 +22,21 @@ class StudentController extends Controller implements HasMiddleware
     }
 
     /**
-     * Show reserved meals for the current student, optionally for a specific date.
+     * @OA\Get(
+     *     path="/api/student/reservations",
+     *     summary="Show reserved meals for the current student",
+     *     tags={"Student"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="date",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
      */
     public function reservations(Request $request)
     {
@@ -41,7 +55,22 @@ class StudentController extends Controller implements HasMiddleware
     }
 
     /**
-     * Reserve a meal.
+     * @OA\Post(
+     *     path="/api/student/reservations",
+     *     summary="Reserve a meal",
+     *     tags={"Student"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"menu_meal_id"},
+     *             @OA\Property(property="menu_meal_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Reservation created"),
+     *     @OA\Response(response=400, description="Already reserved a meal of this type for this date"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function reserve(Request $request)
     {
@@ -74,7 +103,21 @@ class StudentController extends Controller implements HasMiddleware
     }
 
     /**
-     * Remove a reserved meal.
+     * @OA\Delete(
+     *     path="/api/student/reservations/{reservation}",
+     *     summary="Remove a reserved meal",
+     *     tags={"Student"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="reservation",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Reservation removed"),
+     *     @OA\Response(response=403, description="Unauthorized (not your reservation)"),
+     *     @OA\Response(response=404, description="Reservation not found")
+     * )
      */
     public function removeReservation(Reservation $reservation)
     {
@@ -88,7 +131,22 @@ class StudentController extends Controller implements HasMiddleware
     }
 
     /**
-     * Submit a reclamation.
+     * @OA\Post(
+     *     path="/api/student/reclamations",
+     *     summary="Submit a reclamation",
+     *     tags={"Student"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"description"},
+     *             @OA\Property(property="description", type="string", example="The meal was cold.")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Reclamation submitted"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
      */
     public function submitReclamation(Request $request)
     {

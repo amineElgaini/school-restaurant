@@ -80,6 +80,41 @@ class AdminController extends Controller implements HasMiddleware
         return response()->json($user->load('role'), 201);
     }
 
+    /**
+     * @OA\Patch(
+     *     path="/api/admin/users/{user}",
+     *     summary="Update a user",
+     *     tags={"Admin"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="user",
+     *         in="path",
+     *         required=true,
+     *         description="User ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="secret123"),
+     *             @OA\Property(property="role_id", type="integer", example=1),
+     *             @OA\Property(property="permissions", type="array", @OA\Items(type="integer"), example={1, 2})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User updated successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
@@ -87,6 +122,8 @@ class AdminController extends Controller implements HasMiddleware
             'email' => ['sometimes', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'sometimes|string|min:8',
             'role_id' => 'sometimes|exists:roles,id',
+            'permissions' => 'sometimes|array',
+            'permissions.*' => 'exists:permissions,id',
         ]);
 
         if (isset($validated['password'])) {
@@ -95,37 +132,49 @@ class AdminController extends Controller implements HasMiddleware
 
         $user->update($validated);
 
-        return response()->json($user->load('role'));
-    }
+        if ($request->has('permissions')) {
+            $permissionIds = $validated['permissions'];
 
-    public function updatePermissions(Request $request, User $user)
-    {
-        $validated = $request->validate([
-            'permissions' => 'present|array',
-            'permissions.*' => 'exists:permissions,id',
-        ]);
+            $user->load('role');
 
-        $permissionIds = $validated['permissions'];
+            $rolePermissions = $user->role->permissions()->pluck('permissions.id')->toArray();
 
-        // Check if these permissions are applied to this user's role
-        $rolePermissions = $user->role->permissions()->pluck('permissions.id')->toArray();
-
-        foreach ($permissionIds as $permissionId) {
-            if (!in_array($permissionId, $rolePermissions)) {
-                return response()->json([
-                    'error' => "Permission ID {$permissionId} is not allowed for the user's role."
-                ], 422);
+            foreach ($permissionIds as $permissionId) {
+                if (!in_array($permissionId, $rolePermissions)) {
+                    return response()->json([
+                        'error' => "Permission ID {$permissionId} is not allowed for the user's role."
+                    ], 422);
+                }
             }
+
+            $user->permissions()->sync($permissionIds);
         }
 
-        $user->permissions()->sync($permissionIds);
-
-        return response()->json([
-            'message' => 'Permissions updated successfully',
-            'user' => $user->load('permissions')
-        ]);
+        return response()->json($user->load(['role', 'permissions']));
     }
 
+
+    /**
+     * @OA\Delete(
+     *     path="/api/admin/users/{user}",
+     *     summary="Archive a user",
+     *     tags={"Admin"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="user",
+     *         in="path",
+     *         required=true,
+     *         description="User ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User archived"
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden (e.g. self-delete)")
+     * )
+     */
     public function destroy(User $user)
     {
         if (auth()->id() === $user->id) {

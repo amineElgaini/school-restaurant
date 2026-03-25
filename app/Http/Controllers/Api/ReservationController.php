@@ -20,6 +20,35 @@ class ReservationController extends Controller implements HasMiddleware
         ];
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/reservations",
+     *     summary="List users who have reservations for a specific date",
+     *     tags={"Reservations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="date",
+     *         in="query",
+     *         required=true,
+     *         description="The date to check (YYYY-MM-DD)",
+     *         @OA\Schema(type="string", format="date", example="2024-03-25")
+     *     ),
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         required=false,
+     *         description="Filter users by name",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation"
+     *     ),
+     *     @OA\Response(response=422, description="Validation error"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
     public function index(Request $request)
     {
         $request->validate([
@@ -46,6 +75,32 @@ class ReservationController extends Controller implements HasMiddleware
     }
 
 
+    /**
+     * @OA\Get(
+     *     path="/api/reservations/details",
+     *     summary="Get reservation details for a specific user and date",
+     *     tags={"Reservations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="user_id",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="date",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation"
+     *     ),
+     *     @OA\Response(response=422, description="Validation error"),
+     *     @OA\Response(response=404, description="Not found")
+     * )
+     */
     public function show(Request $request)
     {
         $request->validate([
@@ -63,6 +118,20 @@ class ReservationController extends Controller implements HasMiddleware
         return $query->get();
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/reservations/stats",
+     *     summary="Get reservation statistics per meal and date",
+     *     tags={"Reservations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation"
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
     public function stats()
     {
         $stats = MenuMeal::with('meal')

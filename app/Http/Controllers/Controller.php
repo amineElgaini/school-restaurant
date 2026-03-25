@@ -8,6 +8,12 @@ namespace App\Http\Controllers;
  *     version="1.0.0",
  *     description="API documentation for the School Restaurant management system."
  * )
+ * @OA\SecurityScheme(
+ *     securityScheme="bearerAuth",
+ *     type="http",
+ *     scheme="bearer",
+ *     bearerFormat="JWT"
+ * )
  */
 abstract class Controller
 {

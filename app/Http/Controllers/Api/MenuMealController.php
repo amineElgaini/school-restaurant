@@ -17,7 +17,27 @@ class MenuMealController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index(Request $request) // Show meals for a date
+    /**
+     * @OA\Get(
+     *     path="/api/menu-meals",
+     *     summary="List meals scheduled for a specific date",
+     *     tags={"Menu Meals"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="date",
+     *         in="query",
+     *         required=true,
+     *         description="The date to check (YYYY-MM-DD)",
+     *         @OA\Schema(type="string", format="date", example="2024-03-25")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation"
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function index(Request $request)
     {
         $request->validate(['date' => 'required|date']);
 
@@ -28,7 +48,30 @@ class MenuMealController extends Controller implements HasMiddleware
             ->get();
     }
 
-    public function store(Request $request) // Add meal to menu
+    /**
+     * @OA\Post(
+     *     path="/api/menu-meals",
+     *     summary="Add a meal to the menu for a specific date",
+     *     tags={"Menu Meals"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"meal_id","reservation_date"},
+     *             @OA\Property(property="meal_id", type="integer", example=1),
+     *             @OA\Property(property="reservation_date", type="string", format="date", example="2024-03-25")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Meal added to menu successfully"
+     *     ),
+     *     @OA\Response(response=400, description="Meal already in menu for this date"),
+     *     @OA\Response(response=422, description="Validation error"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
+    public function store(Request $request)
     {
         $request->validate([
             'meal_id' => 'required|exists:meals,id',
@@ -55,7 +98,27 @@ class MenuMealController extends Controller implements HasMiddleware
         return response()->json($menuMeal, 201);
     }
 
-    public function destroy(MenuMeal $menuMeal) // Remove meal from menu
+    /**
+     * @OA\Delete(
+     *     path="/api/menu-meals/{menu_meal}",
+     *     summary="Remove a meal from the menu",
+     *     tags={"Menu Meals"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="menu_meal",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Meal removed from menu"
+     *     ),
+     *     @OA\Response(response=404, description="Menu meal not found"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
+    public function destroy(MenuMeal $menuMeal)
     {
         $menuMeal->delete();
 

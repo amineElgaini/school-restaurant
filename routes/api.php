@@ -14,15 +14,11 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', function (Request $request) {
-        return $request->user()->load(['role', 'permissions']);
-    });
+    Route::get('/me', [AuthController::class, 'me']);
 
     // Admin Routes
     Route::prefix('admin')->group(function () {
         Route::apiResource('users', AdminController::class)->except(['show']);
-        Route::post('users/{user}/permissions', [AdminController::class, 'updatePermissions']);
-        Route::get('roles', [RoleController::class, 'index']);
         Route::get('roles/permissions', [RoleController::class, 'rolesWithPermissions']);
     });
 
@@ -38,5 +34,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/reservations/{reservation}', [StudentController::class, 'removeReservation']);
         Route::post('/reclamations', [StudentController::class, 'submitReclamation']);
     });
-
 });

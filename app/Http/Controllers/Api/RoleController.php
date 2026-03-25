@@ -17,11 +17,20 @@ class RoleController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
-    {
-        return Role::all();
-    }
-
+    /**
+     * @OA\Get(
+     *     path="/api/admin/roles/permissions",
+     *     summary="List all roles with their default permissions",
+     *     tags={"Admin"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation"
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
     public function rolesWithPermissions()
     {
         return Role::with('permissions')->get();
