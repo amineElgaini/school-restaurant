@@ -9,6 +9,11 @@ class Permission extends Model
 {
     use \Illuminate\Database\Eloquent\Factories\HasFactory;
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     protected $fillable = ['name', 'slug'];
 
     /**

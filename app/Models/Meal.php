@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Meal extends Model
 {
     use HasFactory;
+    
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
 
     protected $fillable = [
         'name',

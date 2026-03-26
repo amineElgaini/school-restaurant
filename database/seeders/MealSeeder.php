@@ -12,30 +12,30 @@ class MealSeeder extends Seeder
      */
     public function run(): void
     {
-        $platPrincipal = \App\Models\MealType::where('slug', 'plat_principal')->first();
-        $entree = \App\Models\MealType::where('slug', 'entree')->first();
+        $mainCourse = \App\Models\MealType::where('slug', 'main_course')->first();
+        $starter = \App\Models\MealType::where('slug', 'starter')->first();
         $dessert = \App\Models\MealType::where('slug', 'dessert')->first();
 
         $meals = [
             [
-                'name' => 'Couscous Royal',
-                'meal_type_id' => $platPrincipal->id,
-                'description' => 'Traditionnel couscous avec légumes et viande.',
+                'name' => 'Royal Couscous',
+                'meal_type_id' => $mainCourse->id,
+                'description' => 'Traditional couscous with vegetables and meat.',
             ],
             [
-                'name' => 'Salade César',
-                'meal_type_id' => $entree->id,
-                'description' => 'Salade fraîche avec croûtons et sauce César.',
+                'name' => 'Caesar Salad',
+                'meal_type_id' => $starter->id,
+                'description' => 'Fresh salad with croutons and Caesar dressing.',
             ],
             [
-                'name' => 'Tarte au Pommes',
+                'name' => 'Apple Pie',
                 'meal_type_id' => $dessert->id,
-                'description' => 'Dessert sucré et fruité.',
+                'description' => 'Sweet and fruity dessert.',
             ],
             [
                 'name' => 'Pizza Margherita',
-                'meal_type_id' => $platPrincipal->id,
-                'description' => 'Pizza classique avec tomate et mozzarella.',
+                'meal_type_id' => $mainCourse->id,
+                'description' => 'Classic pizza with tomato and mozzarella.',
             ],
         ];
 

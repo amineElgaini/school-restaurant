@@ -30,7 +30,17 @@ class AuthController extends Controller
      *         description="Login successful",
      *         @OA\JsonContent(
      *             @OA\Property(property="token", type="string"),
-     *             @OA\Property(property="user", type="object")
+     *             @OA\Property(property="user", type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="email", type="string"),
+     *                 @OA\Property(property="image", type="string", nullable=true),
+     *                 @OA\Property(property="role", type="object",
+     *                     @OA\Property(property="id", type="integer"),
+     *                     @OA\Property(property="name", type="string")
+     *                 ),
+     *                 @OA\Property(property="permissions", type="array", @OA\Items(type="string"))
+     *             )
      *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")
@@ -41,20 +51,31 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
-            'device_name' => 'required',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Les identifiants fournis sont incorrects.'],
+                'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
+        $tokenName = 'api-token';
+
         return response()->json([
-            'token' => $user->createToken($request->device_name)->plainTextToken,
-            'user' => $user
+            'token' => $user->createToken($tokenName)->plainTextToken,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'image' => $user->image,
+                'email' => $user->email,
+                'role' => [
+                    'id' => $user->role->id,
+                    'name' => $user->role->name,
+                ],
+                'permissions' => $user->permissions->pluck('slug'),
+            ]
         ]);
     }
 
@@ -73,7 +94,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Déconnexion réussie.'
+            'message' => 'Logout successful.'
         ]);
     }
 
@@ -85,13 +106,35 @@ class AuthController extends Controller
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
-     *         description="Successful operation"
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="email", type="string"),
+     *             @OA\Property(property="image", type="string", nullable=true),
+     *             @OA\Property(property="role", type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="name", type="string")
+     *             ),
+     *             @OA\Property(property="permissions", type="array", @OA\Items(type="string"))
+     *         )
      *     ),
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
     public function me(Request $request)
     {
-        return $request->user()->load(['role', 'permissions']);
+        $user = $request->user()->load(['role', 'permissions']);
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'image' => $user->image,
+            'email' => $user->email,
+            'role' => [
+                'id' => $user->role->id,
+                'name' => $user->role->name,
+            ],
+            'permissions' => $user->permissions->pluck('slug'),
+        ]);
     }
 }

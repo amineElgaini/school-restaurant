@@ -25,7 +25,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage_menu' => ['name' => 'Plan Weekly Menu', 'slug' => 'manage_menu'],
             'manage_meals' => ['name' => 'Manage Meals', 'slug' => 'manage_meals'],
             'view_reservations' => ['name' => 'View Reservations', 'slug' => 'view_reservations'],
-            'submit_reclamation' => ['name' => 'Submit Reclamation', 'slug' => 'submit_reclamation'],
+            'submit_complaint' => ['name' => 'Submit Complaint', 'slug' => 'submit_complaint'],
         ];
 
         foreach ($permissions as $slug => $data) {
@@ -42,7 +42,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         $studentRole->permissions()->sync([
-            // $permissionModels['submit_reclamation']->id,
+            // $permissionModels['submit_complaint']->id,
         ]);
 
         // 4. Create Specific Test Users for Role Use Cases
@@ -54,7 +54,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $this->createUser('Staff Planner', 'staff_plan_menu@example.com', $staffRole, $permissionModels['manage_menu']);
         $this->createUser('Staff Manager', 'staff_manage_meals@example.com', $staffRole, $permissionModels['manage_meals']);
         $this->createUser('Staff Reservations', 'staff_view_reservations@example.com', $staffRole, $permissionModels['view_reservations']);
-        $this->createUser('Student Reporter', 'student_submit_reclamation@example.com', $studentRole, $permissionModels['submit_reclamation']);
+        $this->createUser('Student Reporter', 'student_submit_complaint@example.com', $studentRole, $permissionModels['submit_complaint']);
     }
 
     private function createUser($name, $email, $role, $permission = null)

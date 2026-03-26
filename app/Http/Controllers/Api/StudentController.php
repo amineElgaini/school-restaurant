@@ -17,7 +17,7 @@ class StudentController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('role:student'),
-            new Middleware('permission:submit_reclamation', only: ['submitReclamation'])
+            new Middleware('permission:submit_complaint', only: ['submitComplaint'])
         ];
     }
 
@@ -132,8 +132,8 @@ class StudentController extends Controller implements HasMiddleware
 
     /**
      * @OA\Post(
-     *     path="/api/student/reclamations",
-     *     summary="Submit a reclamation",
+     *     path="/api/student/complaints",
+     *     summary="Submit a complaint",
      *     tags={"Student"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
@@ -143,12 +143,12 @@ class StudentController extends Controller implements HasMiddleware
      *             @OA\Property(property="description", type="string", example="The meal was cold.")
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Reclamation submitted"),
+     *     @OA\Response(response=201, description="Complaint submitted"),
      *     @OA\Response(response=401, description="Unauthenticated"),
      *     @OA\Response(response=403, description="Forbidden")
      * )
      */
-    public function submitReclamation(Request $request)
+    public function submitComplaint(Request $request)
     {
         $validated = $request->validate([
             'description' => 'required|string',

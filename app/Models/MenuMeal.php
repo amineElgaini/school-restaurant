@@ -9,6 +9,11 @@ class MenuMeal extends Model
 {
     use HasFactory;
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     protected $table = 'menu_meals';
 
     protected $fillable = [
