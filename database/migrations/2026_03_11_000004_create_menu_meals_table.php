@@ -18,6 +18,7 @@ return new class extends Migration
             $table->timestamps();
             
             $table->unique(['meal_id', 'served_at']);
+            $table->index('served_at');
         });
     }
 
