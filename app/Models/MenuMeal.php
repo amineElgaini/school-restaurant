@@ -18,7 +18,7 @@ class MenuMeal extends Model
 
     protected $fillable = [
         'meal_id',
-        'reservation_date',
+        'served_at',
     ];
 
 

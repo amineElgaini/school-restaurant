@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('menu_meals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('meal_id')->constrained()->onDelete('cascade');
-            $table->date('reservation_date');
+            $table->date('served_at');
             $table->timestamps();
             
-            $table->unique(['meal_id', 'reservation_date']);
+            $table->unique(['meal_id', 'served_at']);
         });
     }
 

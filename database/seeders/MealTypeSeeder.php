@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\MealType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -20,7 +21,7 @@ class MealTypeSeeder extends Seeder
         ];
 
         foreach ($types as $type) {
-            \App\Models\MealType::firstOrCreate(['slug' => $type['slug']], $type);
+            MealType::firstOrCreate(['slug' => $type['slug']], $type);
         }
     }
 }

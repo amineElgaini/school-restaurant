@@ -61,7 +61,7 @@ class ReservationController extends Controller implements HasMiddleware
 
         $usersQuery = \App\Models\User::whereHas('reservations', function ($q) use ($date) {
             $q->whereHas('menuMeal', function ($q2) use ($date) {
-                $q2->whereDate('reservation_date', $date);
+                $q2->whereDate('served_at', $date);
             });
         });
 
@@ -112,7 +112,7 @@ class ReservationController extends Controller implements HasMiddleware
             ->where('user_id', $request->user_id);
 
         $query->whereHas('menuMeal', function ($q) use ($request) {
-            $q->where('reservation_date', $request->query('date'));
+            $q->where('served_at', $request->query('date'));
         });
 
         return $query->get();
@@ -141,7 +141,7 @@ class ReservationController extends Controller implements HasMiddleware
                 return [
                     'meal_name' => $menuMeal->meal->name,
                     'meal_type' => $menuMeal->meal->type,
-                    'reservation_date' => $menuMeal->reservation_date,
+                    'served_at' => $menuMeal->served_at,
                     'reservations_count' => $menuMeal->reservations_count,
                 ];
             });

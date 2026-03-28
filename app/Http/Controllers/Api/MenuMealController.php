@@ -44,7 +44,7 @@ class MenuMealController extends Controller implements HasMiddleware
         $date = $request->input('date');
 
         return MenuMeal::with('meal')
-            ->whereDate('reservation_date', $date)
+            ->whereDate('served_at', $date)
             ->get();
     }
 
@@ -57,9 +57,9 @@ class MenuMealController extends Controller implements HasMiddleware
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"meal_id","reservation_date"},
+     *             required={"meal_id","served_at"},
      *             @OA\Property(property="meal_id", type="integer", example=1),
-     *             @OA\Property(property="reservation_date", type="string", format="date", example="2024-03-25")
+     *             @OA\Property(property="served_at", type="string", format="date", example="2024-03-25")
      *         )
      *     ),
      *     @OA\Response(
@@ -75,12 +75,12 @@ class MenuMealController extends Controller implements HasMiddleware
     {
         $request->validate([
             'meal_id' => 'required|exists:meals,id',
-            'reservation_date' => 'required|date',
+            'served_at' => 'required|date',
         ]);
 
         // Check if the meal already exists for this date
         $exists = MenuMeal::where('meal_id', $request->meal_id)
-            ->where('reservation_date', $request->reservation_date)
+            ->where('served_at', $request->served_at)
             ->exists();
 
         if ($exists) {
@@ -92,7 +92,7 @@ class MenuMealController extends Controller implements HasMiddleware
         // Create new MenuMeal
         $menuMeal = MenuMeal::create([
             'meal_id' => $request->meal_id,
-            'reservation_date' => $request->reservation_date,
+            'served_at' => $request->served_at,
         ]);
 
         return response()->json($menuMeal, 201);
@@ -125,7 +125,7 @@ class MenuMealController extends Controller implements HasMiddleware
         return response()->json([
             'message' => 'Meal removed from menu',
             'meal_id' => $menuMeal->meal_id,
-            'reservation_date' => $menuMeal->reservation_date,
+            'served_at' => $menuMeal->served_at,
         ], 200);
     }
 }

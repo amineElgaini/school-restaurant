@@ -29,7 +29,7 @@ Schema::create('meal_types', function (Blueprint $table) {
         Schema::create('menu_meals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('meal_id')->constrained()->onDelete('cascade');
-            $table->date('reservation_date');
+            $table->date('served_at');
             $table->timestamps();
         });
 
@@ -40,10 +40,13 @@ Schema::create('meal_types', function (Blueprint $table) {
             $table->timestamps();
         });
 
-          Schema::create('complaints', function (Blueprint $table) {
+        Schema::create('complaints', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('subject')->nullable();
             $table->text('description');
+            $table->enum('status', ['pending', 'in_progress', 'resolved', 'rejected'])->default('pending');
+            $table->text('response')->nullable();
             $table->timestamps();
         });
 

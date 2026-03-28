@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Meal;
+use App\Models\MealType;
+use App\Models\MenuMeal;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,9 +15,9 @@ class MealSeeder extends Seeder
      */
     public function run(): void
     {
-        $mainCourse = \App\Models\MealType::where('slug', 'main_course')->first();
-        $starter = \App\Models\MealType::where('slug', 'starter')->first();
-        $dessert = \App\Models\MealType::where('slug', 'dessert')->first();
+        $mainCourse = MealType::where('slug', 'main_course')->first();
+        $starter = MealType::where('slug', 'starter')->first();
+        $dessert = MealType::where('slug', 'dessert')->first();
 
         $meals = [
             [
@@ -40,12 +43,12 @@ class MealSeeder extends Seeder
         ];
 
         foreach ($meals as $mealData) {
-            $meal = \App\Models\Meal::firstOrCreate(['name' => $mealData['name']], $mealData);
+            $meal = Meal::firstOrCreate(['name' => $mealData['name']], $mealData);
             
             // Create a MenuMeal for today for each meal to make testing easy
-            \App\Models\MenuMeal::firstOrCreate([
+            MenuMeal::firstOrCreate([
                 'meal_id' => $meal->id,
-                'reservation_date' => now()->toDateString(),
+                'served_at' => now()->toDateString(),
             ]);
         }
     }

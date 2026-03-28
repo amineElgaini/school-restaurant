@@ -611,14 +611,14 @@
                             "schema": {
                                 "required": [
                                     "meal_id",
-                                    "reservation_date"
+                                    "served_at"
                                 ],
                                 "properties": {
                                     "meal_id": {
                                         "type": "integer",
                                         "example": 1
                                     },
-                                    "reservation_date": {
+                                    "served_at": {
                                         "type": "string",
                                         "format": "date",
                                         "example": "2024-03-25"
