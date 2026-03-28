@@ -2,18 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Meal extends Model
 {
-    use HasFactory;
-    
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
     protected $fillable = [
         'name',
         'meal_type_id',
@@ -21,15 +15,12 @@ class Meal extends Model
         'image',
     ];
 
-    public function type()
+    public function mealType(): BelongsTo
     {
-        return $this->belongsTo(MealType::class, 'meal_type_id');
+        return $this->belongsTo(MealType::class);
     }
 
-    /**
-     * The reservations for this meal via menu_meals.
-     */
-    public function menuMeals()
+    public function menuMeals(): HasMany
     {
         return $this->hasMany(MenuMeal::class);
     }

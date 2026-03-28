@@ -4,6 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
@@ -35,9 +38,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'created_at',
-        'updated_at',
-        'deleted_at',
     ];
 
     /**
@@ -53,53 +53,44 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * The reservations that belong to the user.
-     */
-    public function reservations()
-    {
-        return $this->hasMany(Reservation::class);
-    }
-
-    /**
-     * The role that belongs to the user.
-     */
-    public function role()
+    public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
     }
 
-    /**
-     * The permissions that belong to the user.
-     */
-    public function permissions()
+    public function directPermissions(): BelongsToMany
     {
-        return $this->belongsToMany(Permission::class);
+        return $this->belongsToMany(Permission::class, 'permission_user')
+            ->withTimestamps();
     }
 
-    /**
-     * Check if the user has a specific role.
-     */
-    public function hasRole(string $role): bool
+    public function reservations(): HasMany
     {
-        return $this->role && $this->role->name === $role;
+        return $this->hasMany(Reservation::class);
     }
 
-    /**
-     * Check if the user has a specific permission.
-     */
-    public function hasPermission(string $permission): bool
+    public function complaints(): HasMany
     {
-        // Check direct permissions
-        if ($this->permissions()->where('slug', $permission)->exists()) {
-            return true;
-        }
+        return $this->hasMany(Complaint::class);
+    }
 
-        // Check permissions through roles
-        if ($this->role && $this->role->permissions()->where('slug', $permission)->exists()) {
-            return true;
-        }
+    public function getAllPermissions()
+    {
+        $rolePermissions = $this->role ? $this->role->permissions : collect();
 
-        return false;
+        return $rolePermissions
+            ->merge($this->directPermissions)
+            ->unique('id')
+            ->values();
+    }
+
+    public function hasPermission(string $slug): bool
+    {
+        return $this->getAllPermissions()->contains('slug', $slug);
+    }
+
+    public function hasRole(string $slug): bool
+    {
+        return $this->role?->slug === $slug;
     }
 }

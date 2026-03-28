@@ -2,24 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Complaint extends Model
 {
-    use HasFactory;
-
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
     protected $fillable = [
         'user_id',
+        'subject',
         'description',
+        'status',
+        'response',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

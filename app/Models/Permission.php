@@ -2,33 +2,33 @@
 
 namespace App\Models;
 
-use App\Models\Role;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Permission extends Model
 {
-    use \Illuminate\Database\Eloquent\Factories\HasFactory;
-
-    protected $hidden = [
-        'created_at',
-        'updated_at',
+    protected $fillable = [
+        'name',
+        'slug',
     ];
 
-    protected $fillable = ['name', 'slug'];
-
-    /**
-     * The roles that belong to the permission.
-     */
-    public function roles()
+    public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class);
+        return $this->belongsToMany(Role::class, 'permission_role')
+            ->withTimestamps();
     }
 
-    /**
-     * The users that belong to the permission.
-     */
-    public function users()
+/*************  ✨ Windsurf Command ⭐  *************/
+/*******  36cbac1e-700b-4564-be2d-ce700802afe8  *******/
+    public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'permission_user')
+            ->withTimestamps();
+    }
+
+    public function assignableRoles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'assignable_role_permissions')
+            ->withTimestamps();
     }
 }
