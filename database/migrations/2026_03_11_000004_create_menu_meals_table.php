@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('meal_id')->constrained()->onDelete('cascade');
             $table->date('reservation_date');
             $table->timestamps();
+            
+            $table->unique(['meal_id', 'reservation_date']);
         });
     }
 

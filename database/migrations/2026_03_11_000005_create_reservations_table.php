@@ -16,7 +16,9 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('menu_meal_id')->constrained('menu_meals')->onDelete('cascade');
             $table->timestamps();
-        });
+            
+            $table->unique(['user_id', 'menu_meal_id']);
+            });
     }
 
     /**
