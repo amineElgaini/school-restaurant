@@ -18,8 +18,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin Routes
     Route::prefix('admin')->group(function () {
-        Route::apiResource('users', AdminController::class)->except(['show']);
-        Route::get('roles/permissions', [RoleController::class, 'rolesWithPermissions']);
+
+        Route::get('/users', [AdminController::class, 'index']);
+        Route::post('/users', [AdminController::class, 'store']);
+        Route::get('/users/{user}', [AdminController::class, 'show']);
+        Route::put('/users/{user}', [AdminController::class, 'update']);
+        Route::delete('/users/{user}', [AdminController::class, 'destroy']);
+
+        Route::get('/roles', [AdminController::class, 'roles']);
+        Route::get('/roles/{role}/assignable-permissions', [AdminController::class, 'assignablePermissions']);
     });
 
     Route::apiResource('meals', MealController::class);

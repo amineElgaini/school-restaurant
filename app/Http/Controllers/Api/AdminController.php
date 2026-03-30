@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller implements HasMiddleware
 {
@@ -20,55 +22,48 @@ class AdminController extends Controller implements HasMiddleware
         ];
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/admin",
-     *     summary="List all users with roles and permissions",
-     *     tags={"Admin"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation"
-     *     )
-     * )
-     */
     public function index()
     {
-        return User::with(['role', 'permissions'])->get();
+        $users = User::with('role')->get();
+
+        return response()->json(
+            $users->map(function (User $user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'image' => $user->image,
+                    'role' => $user->role ? [
+                        'id' => $user->role->id,
+                        'name' => $user->role->name,
+                        'slug' => $user->role->slug,
+                    ] : null,
+                ];
+            })
+        );
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/admin",
-     *     summary="Create a new user",
-     *     tags={"Admin"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name","email","password","role_id"},
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="secret123"),
-     *             @OA\Property(property="role_id", type="integer", example=1)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="User created successfully"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error"
-     *     )
-     * )
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'role_id' => 'required|exists:roles,id',
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
+            'role_id' => ['required', 'exists:roles,id'],
+            'direct_permission_slugs' => ['nullable', 'array'],
+            'direct_permission_slugs.*' => ['string', 'exists:permissions,slug'],
         ]);
+
+        $role = Role::with('assignablePermissions')->findOrFail($validated['role_id']);
+
+        $allowedSlugs = $role->assignablePermissions->pluck('slug')->toArray();
+        $selectedSlugs = $validated['direct_permission_slugs'] ?? [];
+
+        if (array_diff($selectedSlugs, $allowedSlugs)) {
+            throw ValidationException::withMessages([
+                'direct_permission_slugs' => ['Some selected permissions are not assignable for this role.'],
+            ]);
+        }
 
         $user = User::create([
             'name' => $validated['name'],
@@ -77,111 +72,143 @@ class AdminController extends Controller implements HasMiddleware
             'role_id' => $validated['role_id'],
         ]);
 
-        return response()->json($user->load('role'), 201);
+        if (!empty($selectedSlugs)) {
+            $permissionIds = Permission::whereIn('slug', $selectedSlugs)->pluck('id');
+            $user->directPermissions()->sync($permissionIds);
+        }
+
+        $user->load(['role.permissions', 'role.assignablePermissions', 'directPermissions']);
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'image' => $user->image,
+            'role' => $user->role ? [
+                'id' => $user->role->id,
+                'name' => $user->role->name,
+                'slug' => $user->role->slug,
+            ] : null,
+            'direct_permissions' => $user->directPermissions->pluck('slug')->values(),
+            'effective_permissions' => $user->getAllPermissions()->pluck('slug')->values(),
+        ], 201);
     }
 
-    /**
-     * @OA\Patch(
-     *     path="/api/admin/users/{user}",
-     *     summary="Update a user",
-     *     tags={"Admin"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="user",
-     *         in="path",
-     *         required=true,
-     *         description="User ID",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="secret123"),
-     *             @OA\Property(property="role_id", type="integer", example=1),
-     *             @OA\Property(property="permissions", type="array", @OA\Items(type="integer"), example={1, 2})
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="User updated successfully"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error"
-     *     ),
-     *     @OA\Response(response=401, description="Unauthenticated"),
-     *     @OA\Response(response=403, description="Forbidden")
-     * )
-     */
+    public function show(User $user)
+    {
+        $user->load(['role', 'directPermissions']);
+
+        $roles = Role::all(['id', 'name', 'slug']);
+
+        $assignablePermissions = $user->role
+            ? $user->role->assignablePermissions()->get(['permissions.id', 'permissions.name', 'permissions.slug'])
+            : collect();
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'image' => $user->image,
+                'role' => $user->role ? [
+                    'id' => $user->role->id,
+                    'name' => $user->role->name,
+                    'slug' => $user->role->slug,
+                ] : null,
+            ],
+            'roles' => $roles,
+            'direct_permissions' => $user->directPermissions->pluck('slug')->values(),
+            'assignable_permissions' => $assignablePermissions->values(),
+        ]);
+    }
+
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => ['sometimes', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password' => 'sometimes|string|min:8',
-            'role_id' => 'sometimes|exists:roles,id',
-            'permissions' => 'sometimes|array',
-            'permissions.*' => 'exists:permissions,id',
+            'name' => ['sometimes', 'string', 'max:255'],
+            'email' => [
+                'sometimes',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+            'password' => ['sometimes', 'string', 'min:8'],
+            'role_id' => ['sometimes', 'exists:roles,id'],
+            'direct_permission_slugs' => ['required_with:role_id', 'array'],
+            'direct_permission_slugs.*' => ['string', 'exists:permissions,slug'],
         ]);
 
-        if (isset($validated['password'])) {
+        if (array_key_exists('password', $validated)) {
             $validated['password'] = Hash::make($validated['password']);
         }
 
-        $user->update($validated);
+        $newRoleId = $validated['role_id'] ?? $user->role_id;
+        $role = Role::with('assignablePermissions')->findOrFail($newRoleId);
 
-        if ($request->has('permissions')) {
-            $permissionIds = $validated['permissions'];
+        $selectedSlugs = $validated['direct_permission_slugs'] ?? null;
 
-            $user->load('role');
+        if ($selectedSlugs !== null) {
+            $allowedSlugs = $role->assignablePermissions->pluck('slug')->toArray();
 
-            $rolePermissions = $user->role->permissions()->pluck('permissions.id')->toArray();
-
-            foreach ($permissionIds as $permissionId) {
-                if (!in_array($permissionId, $rolePermissions)) {
-                    return response()->json([
-                        'error' => "Permission ID {$permissionId} is not allowed for the user's role."
-                    ], 422);
-                }
+            if (array_diff($selectedSlugs, $allowedSlugs)) {
+                throw ValidationException::withMessages([
+                    'direct_permission_slugs' => ['Some selected permissions are not assignable for this role.'],
+                ]);
             }
-
-            $user->permissions()->sync($permissionIds);
         }
 
-        return response()->json($user->load(['role', 'permissions']));
+        $user->update(collect($validated)->except('direct_permission_slugs')->toArray());
+
+        if ($selectedSlugs !== null) {
+            $permissionIds = Permission::whereIn('slug', $selectedSlugs)->pluck('id');
+            $user->directPermissions()->sync($permissionIds);
+        }
+
+        $user->load(['role.permissions', 'role.assignablePermissions', 'directPermissions']);
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'image' => $user->image,
+            'role' => $user->role ? [
+                'id' => $user->role->id,
+                'name' => $user->role->name,
+                'slug' => $user->role->slug,
+            ] : null,
+            'direct_permissions' => $user->directPermissions->pluck('slug')->values(),
+            'effective_permissions' => $user->getAllPermissions()->pluck('slug')->values(),
+        ]);
     }
 
-
-    /**
-     * @OA\Delete(
-     *     path="/api/admin/users/{user}",
-     *     summary="Archive a user",
-     *     tags={"Admin"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="user",
-     *         in="path",
-     *         required=true,
-     *         description="User ID",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="User archived"
-     *     ),
-     *     @OA\Response(response=401, description="Unauthenticated"),
-     *     @OA\Response(response=403, description="Forbidden (e.g. self-delete)")
-     * )
-     */
     public function destroy(User $user)
     {
         if (auth()->id() === $user->id) {
-            return response()->json(['error' => 'You cannot delete yourself.'], 403);
+            return response()->json([
+                'error' => 'You cannot delete yourself.',
+            ], 403);
         }
 
         $user->delete();
-        return response()->json("User archived", 200);
+
+        return response()->json([
+            'message' => 'User archived successfully.',
+        ]);
+    }
+
+    public function roles()
+    {
+        return response()->json(
+            Role::all(['id', 'name', 'slug'])
+        );
+    }
+
+    public function assignablePermissions(Role $role)
+    {
+        $permissions = $role->assignablePermissions()
+            ->get(['permissions.id', 'permissions.name', 'permissions.slug']);
+
+        return response()->json($permissions);
     }
 }
