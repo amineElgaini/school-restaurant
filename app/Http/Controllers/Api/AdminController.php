@@ -135,7 +135,7 @@ class AdminController extends Controller implements HasMiddleware
             ],
             'password' => ['sometimes', 'string', 'min:8'],
             'role_id' => ['sometimes', 'exists:roles,id'],
-            'direct_permission_slugs' => ['required_with:role_id', 'array'],
+            'direct_permission_slugs' => ['present', 'array'],
             'direct_permission_slugs.*' => ['string', 'exists:permissions,slug'],
         ]);
 
