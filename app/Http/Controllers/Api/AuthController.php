@@ -7,134 +7,71 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-
-    /**
-     * @OA\Post(
-     *     path="/api/login",
-     *     summary="Authenticate user and return token",
-     *     tags={"Authentication"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email","password","device_name"},
-     *             @OA\Property(property="email", type="string", format="email", example="admin@school.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="password"),
-     *             @OA\Property(property="device_name", type="string", example="my-phone")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Login successful",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="token", type="string"),
-     *             @OA\Property(property="user", type="object",
-     *                 @OA\Property(property="id", type="integer"),
-     *                 @OA\Property(property="name", type="string"),
-     *                 @OA\Property(property="email", type="string"),
-     *                 @OA\Property(property="image", type="string", nullable=true),
-     *                 @OA\Property(property="role", type="object",
-     *                     @OA\Property(property="id", type="integer"),
-     *                     @OA\Property(property="name", type="string")
-     *                 ),
-     *                 @OA\Property(property="permissions", type="array", @OA\Items(type="string"))
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=422, description="Validation error")
-     * )
-     */
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::with(['role.permissions', 'directPermissions'])
+            ->where('email', $credentials['email'])
+            ->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        $tokenName = 'api-token';
+        $token = JWTAuth::fromUser($user);
 
         return response()->json([
-            'token' => $user->createToken($tokenName)->plainTextToken,
+            'token' => $token,
+            'token_type' => 'bearer',
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'image' => $user->image,
                 'email' => $user->email,
-                'role' => [
+                'role' => $user->role ? [
                     'id' => $user->role->id,
                     'name' => $user->role->name,
-                ],
-                'permissions' => $user->permissions->pluck('slug'),
-            ]
+                    'slug' => $user->role->slug,
+                ] : null,
+                'permissions' => $user->getAllPermissions()->pluck('slug')->values(),
+            ],
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/logout",
-     *     summary="Logout the current user (revoke token)",
-     *     tags={"Authentication"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(response=200, description="Logout successful"),
-     *     @OA\Response(response=401, description="Unauthenticated")
-     * )
-     */
-    public function logout(Request $request)
+    public function logout()
     {
-        $request->user()->currentAccessToken()->delete();
+        JWTAuth::invalidate(JWTAuth::getToken());
 
         return response()->json([
-            'message' => 'Logout successful.'
+            'message' => 'Logout successful.',
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/me",
-     *     summary="Get the currently authenticated user",
-     *     tags={"Authentication"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="id", type="integer"),
-     *             @OA\Property(property="name", type="string"),
-     *             @OA\Property(property="email", type="string"),
-     *             @OA\Property(property="image", type="string", nullable=true),
-     *             @OA\Property(property="role", type="object",
-     *                 @OA\Property(property="id", type="integer"),
-     *                 @OA\Property(property="name", type="string")
-     *             ),
-     *             @OA\Property(property="permissions", type="array", @OA\Items(type="string"))
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Unauthenticated")
-     * )
-     */
-    public function me(Request $request)
+    public function me()
     {
-        $user = $request->user()->load(['role', 'permissions']);
+        $user = auth()->user()->load(['role.permissions', 'directPermissions']);
+
         return response()->json([
             'id' => $user->id,
             'name' => $user->name,
             'image' => $user->image,
             'email' => $user->email,
-            'role' => [
+            'role' => $user->role ? [
                 'id' => $user->role->id,
                 'name' => $user->role->name,
-            ],
-            'permissions' => $user->permissions->pluck('slug'),
+                'slug' => $user->role->slug,
+            ] : null,
+            'permissions' => $user->getAllPermissions()->pluck('slug')->values(),
         ]);
     }
 }
