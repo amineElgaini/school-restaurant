@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Reservation extends Model
 {
+      protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
     protected $fillable = [
         'user_id',
         'menu_meal_id',

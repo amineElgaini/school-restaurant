@@ -17,7 +17,7 @@ class StudentController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('role:student'),
-            new Middleware('permission:submit_complaint', only: ['submitComplaint'])
+            new Middleware('permission:submit_complaints', only: ['submitComplaint'])
         ];
     }
 
@@ -44,7 +44,7 @@ class StudentController extends Controller implements HasMiddleware
             'date' => 'required|date',
         ]);
 
-        $query = Reservation::with(['menuMeal.meal'])
+        $query = Reservation::with(['menuMeal.meal.mealType'])
             ->where('user_id', auth()->id());
 
         $query->whereHas('menuMeal', function ($q) use ($request) {
@@ -78,7 +78,7 @@ class StudentController extends Controller implements HasMiddleware
             'menu_meal_id' => 'required|exists:menu_meals,id',
         ]);
 
-        $menuMeal = MenuMeal::with('meal.type')->findOrFail($validated['menu_meal_id']);
+        $menuMeal = MenuMeal::with('meal.mealType')->findOrFail($validated['menu_meal_id']);
 
         // Check if user already reserved a meal of the same type for this date
         $alreadyReservedType = Reservation::where('user_id', auth()->id())
@@ -99,7 +99,7 @@ class StudentController extends Controller implements HasMiddleware
             'menu_meal_id' => $validated['menu_meal_id'],
         ]);
 
-        return response()->json($reservation->load('menuMeal.meal.type'), 201);
+        return response()->json($reservation->load('menuMeal.meal.mealType'), 201);
     }
 
     /**
@@ -151,11 +151,13 @@ class StudentController extends Controller implements HasMiddleware
     public function submitComplaint(Request $request)
     {
         $validated = $request->validate([
+            'subject' => 'required|string',
             'description' => 'required|string',
         ]);
 
         $complaint = Complaint::create([
             'user_id' => auth()->id(),
+            'subject' => $validated['subject'],
             'description' => $validated['description'],
         ]);
 

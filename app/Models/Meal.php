@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Meal extends Model
 {
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
     protected $fillable = [
         'name',
         'meal_type_id',

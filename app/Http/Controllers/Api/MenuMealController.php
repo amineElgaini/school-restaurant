@@ -43,7 +43,7 @@ class MenuMealController extends Controller implements HasMiddleware
 
         $date = $request->input('date');
 
-        return MenuMeal::with('meal')
+        return MenuMeal::with('meal.mealType')
             ->whereDate('served_at', $date)
             ->get();
     }
