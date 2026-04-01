@@ -32,7 +32,7 @@ class MealController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        return Meal::all();
+        return Meal::with('mealType')->get();
     }
 
     /**
