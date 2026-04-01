@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\MealController;
+use App\Http\Controllers\Api\MealTypeController;
 use App\Http\Controllers\Api\MenuMealController;
 use App\Http\Controllers\Api\ReservationController;
 use Illuminate\Http\Request;
@@ -29,9 +30,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/roles/{role}/assignable-permissions', [AdminController::class, 'assignablePermissions']);
     });
 
+    Route::get('/meal-types', [MealTypeController::class, 'index']);
     Route::apiResource('meals', MealController::class);
     Route::apiResource('menu-meals', MenuMealController::class)->except(['show', 'update']);
     Route::get('reservations/stats', [ReservationController::class, 'stats']);
+    
     Route::apiResource('reservations', ReservationController::class)->only(['index', 'show']);
 
     // Student Routes
