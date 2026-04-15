@@ -95,7 +95,7 @@ class MenuMealController extends Controller implements HasMiddleware
             'served_at' => $request->served_at,
         ]);
 
-        return response()->json($menuMeal, 201);
+        return response()->json($menuMeal->load('meal.mealType'), 201);
     }
 
     /**

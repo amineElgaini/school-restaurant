@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Complaint;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -210,5 +211,28 @@ class AdminController extends Controller implements HasMiddleware
             ->get(['permissions.id', 'permissions.name', 'permissions.slug']);
 
         return response()->json($permissions);
+    }
+
+    public function complaints()
+    {
+        $complaints = Complaint::with(['user:id,name,email'])
+            ->latest()
+            ->get()
+            ->map(function ($complaint) {
+                return [
+                    'id' => $complaint->id,
+                    'subject' => $complaint->subject,
+                    'description' => $complaint->description,
+                    'status' => $complaint->status,
+                    'created_at' => $complaint->created_at,
+                    'user' => [
+                        'id' => $complaint->user?->id,
+                        'name' => $complaint->user?->name,
+                        'email' => $complaint->user?->email,
+                    ],
+                ];
+            });
+
+        return response()->json($complaints);
     }
 }

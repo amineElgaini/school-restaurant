@@ -28,20 +28,25 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/roles', [AdminController::class, 'roles']);
         Route::get('/roles/{role}/assignable-permissions', [AdminController::class, 'assignablePermissions']);
+
+        Route::get('/complaints', [AdminController::class, 'complaints']);
     });
 
     Route::get('/meal-types', [MealTypeController::class, 'index']);
     Route::apiResource('meals', MealController::class);
     Route::apiResource('menu-meals', MenuMealController::class)->except(['show', 'update']);
     Route::get('reservations/stats', [ReservationController::class, 'stats']);
-    
-    Route::apiResource('reservations', ReservationController::class)->only(['index', 'show']);
+
+    Route::middleware(['permission:view_reservations'])->group(function () {
+        Route::get('/reservations', [ReservationController::class, 'index']);
+        Route::get('/reservations/{user}', [ReservationController::class, 'show']);
+    });
 
     // Student Routes
     Route::prefix('student')->group(function () {
         Route::post('/reservations', [StudentController::class, 'reserve']);
         Route::delete('/reservations/{reservation}', [StudentController::class, 'removeReservation']);
         Route::post('/complaints', [StudentController::class, 'submitComplaint']);
-        });
+    });
     Route::get('me/reservations', [StudentController::class, 'reservations']);
 });
