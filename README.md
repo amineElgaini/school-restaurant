@@ -1,59 +1,214 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# School Restaurant API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel-based API for managing school restaurant operations including meal planning, reservations, and user management with role-based access control.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Authentication**: JWT-style API tokens via Laravel Sanctum
+- **Role-Based Access Control (RBAC)**: Custom permission system with roles and granular permissions
+- **Meal Management**: Create and organize meals by type (breakfast, lunch, dinner)
+- **Menu Planning**: Schedule meals for specific dates
+- **Reservation System**: Students can reserve meals with conflict detection
+- **Complaints**: Students can submit complaints for admin review
+- **User Management**: Admins can create, update, and manage users with role/permission assignment
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Framework**: Laravel 12
+- **PHP**: 8.2+
+- **Database**: SQLite (testing), MySQL/PostgreSQL (production)
+- **Authentication**: Laravel Sanctum
+- **API Documentation**: OpenAPI/Swagger (L5-Swagger)
+- **Frontend Build**: Vite + Tailwind CSS 4
 
-## Learning Laravel
+## Requirements
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- PHP 8.2 or higher
+- Composer
+- Node.js & npm
+- SQLite (for testing) or MySQL/PostgreSQL (for development)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Installation
 
-## Laravel Sponsors
+### Quick Setup
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+# Clone and install dependencies
+composer run setup
+```
 
-### Premium Partners
+### Manual Setup
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+# Install PHP dependencies
+composer install
 
-## Contributing
+# Copy environment file
+cp .env.example .env
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# Generate application key
+php artisan key:generate
 
-## Code of Conduct
+# Run database migrations
+php artisan migrate
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Install and build frontend assets
+npm install
+npm run build
+```
 
-## Security Vulnerabilities
+## Development
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Start the development server with hot reloading:
+
+```bash
+composer run dev
+```
+
+This concurrently runs:
+- Laravel development server
+- Queue worker
+- Log tail (Pail)
+- Vite dev server
+
+## Testing
+
+```bash
+# Run all tests
+composer run test
+
+# Run specific test
+php artisan test --filter=TestName
+
+# Run unit tests only
+php artisan test --testsuite=Unit
+
+# Run feature tests only
+php artisan test --testsuite=Feature
+```
+
+## Code Style
+
+```bash
+# Auto-fix code style issues
+./vendor/bin/pint
+```
+
+## API Endpoints
+
+### Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/login` | Login and receive API token |
+| POST | `/api/logout` | Logout (invalidate current token) |
+| GET | `/api/me` | Get current user details |
+
+### Admin Routes (requires `role:admin`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/users` | List all users |
+| POST | `/api/admin/users` | Create new user |
+| GET | `/api/admin/users/{user}` | Get user details with permissions |
+| PUT | `/api/admin/users/{user}` | Update user |
+| DELETE | `/api/admin/users/{user}` | Delete/Archive user |
+| GET | `/api/admin/roles` | List all roles |
+| GET | `/api/admin/roles/{role}/assignable-permissions` | Get assignable permissions for a role |
+| GET | `/api/admin/complaints` | List all complaints |
+
+### Student Routes (requires `role:student`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/student/reservations` | Get student's reservations for a date |
+| POST | `/api/student/reservations` | Reserve a meal |
+| DELETE | `/api/student/reservations/{reservation}` | Cancel a reservation |
+| POST | `/api/student/complaints` | Submit a complaint |
+
+### Meal Routes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/meal-types` | List all meal types |
+| GET | `/api/meals` | List all meals |
+| POST | `/api/meals` | Create a meal |
+| GET | `/api/meals/{meal}` | Get meal details |
+| PUT | `/api/meals/{meal}` | Update a meal |
+| DELETE | `/api/meals/{meal}` | Delete a meal |
+| GET | `/api/menu-meals` | List menu meals |
+| POST | `/api/menu-meals` | Add meal to menu |
+| DELETE | `/api/menu-meals/{menuMeal}` | Remove meal from menu |
+| GET | `/api/reservations/stats` | Get reservation statistics |
+
+### Reservation Routes (requires `permission:view_reservations`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/reservations` | List users with reservations for a date |
+| GET | `/api/reservations/{user}` | Get specific user's reservations |
+
+## Database Schema
+
+### Core Models
+
+- **User** - Students, staff, and admins with soft deletes
+- **Role** - User roles (admin, student, staff)
+- **Permission** - Granular permissions assignable to roles or users
+- **MealType** - Meal categories (breakfast, lunch, dinner)
+- **Meal** - Individual meals belonging to a MealType
+- **MenuMeal** - Meals scheduled for specific dates
+- **Reservation** - User reservations for menu meals
+- **Complaint** - Student complaints with status tracking
+
+### Key Relationships
+
+- User `belongsTo` Role
+- User `belongsToMany` Permission (direct permissions)
+- Role `belongsToMany` Permission
+- Role `hasMany` User
+- Meal `belongsTo` MealType
+- Meal `hasMany` MenuMeal
+- MenuMeal `belongsTo` Meal
+- MenuMeal `hasMany` Reservation
+- Reservation `belongsTo` User
+- Reservation `belongsTo` MenuMeal
+- Complaint `belongsTo` User
+
+## Authorization
+
+The application uses a custom RBAC system:
+
+1. **Roles**: Each user has one role (admin, student, staff)
+2. **Permissions**: Can be assigned to roles (inherited by all users with that role) or directly to users
+3. **Assignable Permissions**: Each role defines which permissions it can grant to its users
+
+### Middleware
+
+- `role:{slug}` - Requires user to have the specified role
+- `permission:{slug}` - Requires user to have the specified permission (via role or direct assignment)
+
+## Project Structure
+
+```
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/Api/   # API controllers
+│   │   └── Middleware/        # Custom middleware (CheckRole, CheckPermission)
+│   └── Models/                # Eloquent models
+├── database/
+│   ├── factories/             # Model factories for testing
+│   ├── migrations/            # Database migrations
+│   └── seeders/               # Database seeders
+├── routes/
+│   ├── api.php                # API routes
+│   └── web.php                # Web routes
+├── tests/
+│   ├── Feature/               # Feature tests
+│   └── Unit/                  # Unit tests
+└── schemas/                   # UML diagrams
+```
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT License - see [Laravel License](https://opensource.org/licenses/MIT)
