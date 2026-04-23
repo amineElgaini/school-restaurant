@@ -1,0 +1,32 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: school-restaurant-api
+    container_name: school-restaurant-app
+    restart: unless-stopped
+    working_dir: /var/www
+    ports:
+      - "8001:80"
+    volumes:
+      - .:/var/www
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: pgsql
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: school-restaurant-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
