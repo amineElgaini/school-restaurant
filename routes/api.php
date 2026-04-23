@@ -30,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/roles/{role}/assignable-permissions', [AdminController::class, 'assignablePermissions']);
 
         Route::get('/complaints', [AdminController::class, 'complaints']);
+        Route::get('/statistics', [AdminController::class, 'statistics']);
     });
 
     Route::get('/meal-types', [MealTypeController::class, 'index']);

@@ -69,7 +69,7 @@ class MealController extends Controller implements HasMiddleware
             'name' => 'required|string|max:255',
             'meal_type_id' => 'required|exists:meal_types,id',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'image' => 'nullable|file',
         ]);
 
         if ($request->hasFile('image')) {
@@ -140,11 +140,17 @@ class MealController extends Controller implements HasMiddleware
             'name' => 'sometimes|string|max:255',
             'meal_type_id' => 'sometimes|exists:meal_types,id',
             'description' => 'nullable|string',
+            'image' => 'sometimes|nullable|file',
         ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('meals', 'public');
+            $validated['image'] = $path;
+        }
 
         $meal->update($validated);
 
-        return response()->json($meal);
+        return response()->json($meal->load('mealType'));
     }
 
     /**

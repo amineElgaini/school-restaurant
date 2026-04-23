@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Complaint;
+use App\Models\Meal;
 use App\Models\Permission;
+use App\Models\Reservation;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -234,5 +236,62 @@ class AdminController extends Controller implements HasMiddleware
             });
 
         return response()->json($complaints);
+    }
+
+    public function statistics()
+    {
+        $usersCount = User::count();
+        $studentsCount = User::whereHas('role', fn($q) => $q->where('slug', 'student'))->count();
+        $staffCount = User::whereHas('role', fn($q) => $q->where('slug', 'staff'))->count();
+        $adminCount = User::whereHas('role', fn($q) => $q->where('slug', 'admin'))->count();
+
+        $totalReservations = Reservation::count();
+        $todayReservations = Reservation::whereHas('menuMeal', function($q) {
+            $q->whereDate('served_at', now());
+        })->count();
+
+        $totalComplaints = Complaint::count();
+        $pendingComplaints = Complaint::where('status', 'pending')->count();
+        $resolvedComplaints = Complaint::where('status', 'resolved')->count();
+
+        $totalMeals = Meal::count();
+
+        // Recent reservations for activity feed
+        $recentReservations = Reservation::with(['user:id,name,image', 'menuMeal.meal'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($reservation) {
+                return [
+                    'id' => $reservation->id,
+                    'user_name' => $reservation->user->name,
+                    'user_image' => $reservation->user->image,
+                    'meal_name' => $reservation->menuMeal->meal->name,
+                    'served_at' => $reservation->menuMeal->served_at,
+                    'created_at' => $reservation->created_at,
+                ];
+            });
+
+        return response()->json([
+            'users' => [
+                'total' => $usersCount,
+                'students' => $studentsCount,
+                'staff' => $staffCount,
+                'admins' => $adminCount,
+            ],
+            'reservations' => [
+                'total' => $totalReservations,
+                'today' => $todayReservations,
+            ],
+            'complaints' => [
+                'total' => $totalComplaints,
+                'pending' => $pendingComplaints,
+                'resolved' => $resolvedComplaints,
+            ],
+            'meals' => [
+                'total' => $totalMeals,
+            ],
+            'recent_activity' => $recentReservations,
+        ]);
     }
 }
