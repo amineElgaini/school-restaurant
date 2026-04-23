@@ -53,6 +53,7 @@ class AdminController extends Controller implements HasMiddleware
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
             'role_id' => ['required', 'exists:roles,id'],
+            'image' => ['nullable', 'image', 'max:2048'],
             'direct_permission_slugs' => ['nullable', 'array'],
             'direct_permission_slugs.*' => ['string', 'exists:permissions,slug'],
         ]);
@@ -68,11 +69,17 @@ class AdminController extends Controller implements HasMiddleware
             ]);
         }
 
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('users', 'public');
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role_id' => $validated['role_id'],
+            'image' => $imagePath,
         ]);
 
         if (!empty($selectedSlugs)) {
@@ -138,7 +145,8 @@ class AdminController extends Controller implements HasMiddleware
             ],
             'password' => ['sometimes', 'string', 'min:8'],
             'role_id' => ['sometimes', 'exists:roles,id'],
-            'direct_permission_slugs' => ['present', 'array'],
+            'image' => ['sometimes', 'nullable', 'image', 'max:2048'],
+            'direct_permission_slugs' => ['nullable', 'array'],
             'direct_permission_slugs.*' => ['string', 'exists:permissions,slug'],
         ]);
 
@@ -159,6 +167,14 @@ class AdminController extends Controller implements HasMiddleware
                     'direct_permission_slugs' => ['Some selected permissions are not assignable for this role.'],
                 ]);
             }
+        }
+
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($user->getRawOriginal('image')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->getRawOriginal('image'));
+            }
+            $validated['image'] = $request->file('image')->store('users', 'public');
         }
 
         $user->update(collect($validated)->except('direct_permission_slugs')->toArray());

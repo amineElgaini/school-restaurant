@@ -93,4 +93,17 @@ class User extends Authenticatable
     {
         return $this->role?->slug === $slug;
     }
+
+    protected function getImageAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        if (str_starts_with($value, 'http')) {
+            return $value;
+        }
+
+        return asset('storage/' . $value);
+    }
 }
