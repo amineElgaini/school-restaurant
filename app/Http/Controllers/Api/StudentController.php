@@ -7,6 +7,7 @@ use App\Models\MenuMeal;
 use App\Models\Reservation;
 use App\Models\Complaint;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -79,6 +80,17 @@ class StudentController extends Controller implements HasMiddleware
         ]);
 
         $menuMeal = MenuMeal::with('meal.mealType')->findOrFail($validated['menu_meal_id']);
+
+        // Students can only reserve during the week BEFORE the served week (i.e. reserve for next week, not current week).
+        $servedAt = Carbon::parse($menuMeal->served_at);
+        $nextWeekStart = Carbon::now()->addWeek()->startOfWeek();
+        $nextWeekEnd = Carbon::now()->addWeek()->endOfWeek();
+
+        if (! $servedAt->betweenIncluded($nextWeekStart, $nextWeekEnd)) {
+            return response()->json([
+                'message' => 'Reservations are only allowed for next week.',
+            ], 422);
+        }
 
         // Check if user already reserved a meal of the same type for this date
         $alreadyReservedType = Reservation::where('user_id', auth()->id())

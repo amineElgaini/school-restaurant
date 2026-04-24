@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\MenuMeal;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -78,6 +79,16 @@ class MenuMealController extends Controller implements HasMiddleware
             'served_at' => 'required|date',
         ]);
 
+        // Staff can't update the menu for the current week (only next week and beyond).
+        $servedAt = Carbon::parse($request->served_at);
+        $currentWeekStart = Carbon::now()->startOfWeek();
+        $currentWeekEnd = Carbon::now()->endOfWeek();
+        if ($servedAt->betweenIncluded($currentWeekStart, $currentWeekEnd)) {
+            return response()->json([
+                'message' => 'Menu updates are not allowed for the current week.',
+            ], 422);
+        }
+
         // Check if the meal already exists for this date
         $exists = MenuMeal::where('meal_id', $request->meal_id)
             ->where('served_at', $request->served_at)
@@ -120,6 +131,16 @@ class MenuMealController extends Controller implements HasMiddleware
      */
     public function destroy(MenuMeal $menuMeal)
     {
+        // Staff can't update the menu for the current week (only next week and beyond).
+        $servedAt = Carbon::parse($menuMeal->served_at);
+        $currentWeekStart = Carbon::now()->startOfWeek();
+        $currentWeekEnd = Carbon::now()->endOfWeek();
+        if ($servedAt->betweenIncluded($currentWeekStart, $currentWeekEnd)) {
+            return response()->json([
+                'message' => 'Menu updates are not allowed for the current week.',
+            ], 422);
+        }
+
         $menuMeal->delete();
 
         return response()->json([
